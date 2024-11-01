@@ -1,0 +1,38 @@
+# version: '3'
+
+services:     # Each entry creates a separate container.
+  distro:
+    image: alpine # Image to be downloaded at runtime.
+    restart: always # If corruption or host restart or anything similar.
+    container_name: Custom_alpine # docker container's name
+    entrypoint: tail -f /dev/null # ongoing process that runs indefinitely, so the container will keep running. 
+
+  database:
+    image: postgres:latest
+    restart: always
+    container_name: postgress_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../dump:/tmp/
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+
+  web:
+    image: nginx
+    restart: always
+    container_name: nginx_web
+    ports: 
+      - "8081:80"
+    volumes:
+      - ./mysite.template:/etc/nginx/conf.d/mysite.template
+    environment:
+      - NGINX_HOST=sample.com
+      - NGINX_port=80
+    links:
+      - database:db
+      - distro
+
+volumes:
+  data:
+    external: true # use pre-existing external volume
